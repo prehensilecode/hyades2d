@@ -1,0 +1,67 @@
+                ======================
+                H2D_SHELL INSTRUCTIONS
+                ======================
+                
+                $Id: USING_h2d_shell,v 1.2 1999/10/05 01:38:29 dwchin Exp $
+                
+                Introduction
+                ------------
+                H2D_SHELL is a bare-bones way of getting at the HYADES
+                2D output.  H2D_SHELL must be run by doing:
+                
+                         IDL> .run h2d_shell
+                         
+                It keeps all variables at the "$MAIN context",
+                i.e. the top-level scope. H2D_SHELL reads in the data,
+                and creates a H2D object named:
+                
+                        h2d_data
+                        
+                (See the file OBJECT_STRUCTURE for the nitty gritty 
+                on the H2D class.)
+                
+                
+                How to Use
+                ----------
+                The simplest way to explain the use of H2D_SHELL is by showing 
+                a simple example.  H2D_SHELL will read data from a netCDF
+                format file that is created by the "ppf2ncdf" utility that is
+                in the HYADES 2D directory structure.  Currently, HYADES 2D
+                runs only on Remnant.
+                
+                        IDL> .run h2d_shell
+                        
+                        HYADES 2D data analysis shell v.0.2
+                        
+                        Enter run name: lblsample
+                        
+                        Reading data from lblsample.cdf
+                        
+                        [Run information will be printed here.]
+                        [All dump times will be printed here.]
+                        
+                        IDL> ti = h2d_data->getVarData('ti') 
+                                    ;; This makes ti a dblarr that
+                                    ;; contains all the time dumps
+                                    ;; of the variable ti.  Now,
+                                    ;; ti can be manipulated as
+                                    ;; an array, as usual.  This is
+                                    ;; good for prototyping or Q&D
+                                    ;; plotting.
+                        IDL> h2d_data->animate('ti')  
+                                    ;; This puts up an animation window
+                                    ;; which animates the time dumps of ti
+                                    ;; in "real" space.
+                        IDL> h2d_data->animZone('ti') 
+                                    ;; This puts up an animation window
+                                    ;; which animates the time dumps of ti
+                                    ;; in zone space.
+                                                                                  
+                WARNING:
+                ======== 
+                The animation procedures take up LOTS of memory.  Even 
+                Shock, a PowerMac G3 with 256MB RAM and 64MB video
+                RAM, will choke if one has more than about 250 frames.
+                And forget about giving the /BIGWIN option to
+                H2D::ANIMATE on a Mac: it will only run on Remnant
+                (probably will work on Fermi, too, or any Unix box).

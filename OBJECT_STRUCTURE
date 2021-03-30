@@ -1,0 +1,495 @@
+        ============================
+            H2D Object Structure
+        ============================
+        
+        $Id: OBJECT_STRUCTURE,v 1.2 1999/10/05 01:37:59 dwchin Exp $
+        
+        
+        Introduction
+        ------------
+        The HYADES 2D analysis tools H2D_GUI and H2D_SHELLL are
+        object-oriented.  This makes it easier to modify, reuse and
+        add code that will be interfaced by the GUI.  It also hides a
+        lot of unnecessary detail from the user.
+        
+        Notation: all IDL procedures and names will be in uppercase
+        even though everything is lower case in the code.
+        
+        
+        Introduction to Objects
+        -----------------------
+        IDL objects are simpler compared to, say, C++.  Read the
+        section on Objects in the Building IDL Applications manual.
+        Pointers are also used extensively in the HYADES 2D code: the
+        GUI depends on pointers to structures to pass information from
+        one procedure/function to another, and pointers are used to
+        prevent copying the large arrays of data that the HYADES 2D
+        tools manipulate.
+        
+        Objects in IDL are named structures with associated procedures
+        and functions, called "method routines".  All access to the
+        underlying data can only be made through the access method
+        routines (also called "get" routines, as opposed to "set"
+        routines).
+        
+        The structures used in H2D tools are closely tied to the
+        output of HYADES 2D in netCDF format.
+        
+        
+        netCDF format
+        -------------
+        netCDF format is a flexible data format.  netCDF format
+        defines named "dimensions", which will be the sizes of arrays.
+        (See READ_H2D.PRO.)  The names of the dimensions in the H2D
+        tools are the same as in the netCDF file.
+        
+        Structures and Objects common to H2D_SHELL and H2D_GUI
+        ------------------------------------------------------
+        This is a bottom-up description of the data structures and
+        classes.  The top-level object which the user will see is an
+        instance of the H2D class, returned by READ_H2D.PRO, and
+        defined in H2D__DEFINE.PRO.
+
+        Note: structures with only one instance needed are defined
+        in-line, and are named FOO_STRUCT.
+        
+        
+        1.  DIM -- DIM__DEFINE.PRO
+            ---
+            The DIM structure is automatically defined in
+            DIM__DEFINE.PRO.  (See the section on automatically
+            defined structures in the IDL manual.)
+            
+            Definition:
+            -----------
+                STRUCT = {DIM,  $
+                          NAME: '',  $      ; name of this dimension
+                          ID: 0L,  $        ; netCDF ID no. of this dimension
+                          SIZE: 0L}         ; size of this dimension (value)
+            
+            The NAME is a string containing the name of the dimension
+                as in the netCDF file.
+            The ID is a long integer containing the netCDF ID number
+                of the dimension.
+            The SIZE is a long integer containing the value of the
+                dimension.
+            
+            Instances (see READ_H2D.PRO):
+            ---------
+                NUM_KLINES          -- number of k-lines
+                NUM_LLINES          -- number of l-lines
+                NUM_NODES           -- number of nodes/mesh points
+                NUM_REGS            -- number of regions
+                NUM_MATS            -- number of materials
+                NUM_TIMES           -- number of time dumps
+                NUM_STATIC_VALUES
+                
+        2.  DIMENSIONS_STRUCT -- READ_H2D.PRO
+            -----------------
+            It is an aggregate of all the available dimensions (DIM
+            structure above).  There is only one instance of
+            DIMENSIONS_STRUCT in use, and it is in READ_H2D.PRO.
+            
+            Definition:
+            -----------
+                DIMENSIONS = {DIMENSIONS_STRUCT, $
+                              NUM_KLINES: NUM_KLINES, $
+                              NUM_LLINES: NUM_LLINES, $
+                              NUM_NODES:  NUM_NODES, $
+                              NUM_REGS:   NUM_REGS, $
+                              NUM_MATS:   NUM_MATS, $
+                              NUM_TIMES:  NUM_TIMES, $
+                              NUM_STATIC_VALUES: NUM_STATIC_VALUES}
+                              
+            Instances:
+            ----------
+                DIMENSIONS
+        
+        3.  HEADER_STRUCT -- READ_H2D.PRO
+            -------------
+            It contains information about the run.  It is extracted
+            from the HEADER variable in the netCDF file.
+            
+            Definition:
+            -----------    
+                HEADER = {HEADER_STRUCT, $
+                          NAME: INFO.NAME,  $ 
+                          RUN_NAME: STRCOMPRESS(STRING(RUN_NAME)), $
+                          RUN_DATE: STRING(RUN_DATE),  $
+                          RUN_TIME: STRING(RUN_TIME), $
+                          VERSION: STRING(VERSION),  $
+                          VERS_DATE: STRING(VERS_DATE), $
+                          MACHINE: STRING(MACHINE)}
+                          
+            (The structure INFO, from which NAME is set, is the
+            structure returned by NCDF_VARINQ.PRO.)
+            
+            The members of the structure are:
+            
+                NAME              --
+                RUN_NAME          -- run name
+                RUN_DATE          -- date that run was made
+                RUN_TIME          -- time that run was completed
+                VERSION           -- version of HYADES 2D that was used
+                VERS_DATE         -- date stamp of HYADES 2D version
+                MACHINE           -- architecture on which HYADES 2D was run
+               
+            Instances:
+            ----------
+                HEADER.   
+               
+        4.  ARRAY_NAMES_STRUCT -- READ_H2D.PRO
+            ------------------
+            This structure contains the names of all the data arrays
+            in the netCDF file.
+            
+            Definition:
+            -----------
+                ARRAY_NAMES = {ARRAY_NAMES_STRUCT, $
+                               NAME: INFO.NAME,  $
+                               NAMES: STRING(VALUE)}
+            
+            The members of the structure are:
+            
+                NAME             -- 
+                NAMES            -- array of strings with names of the 
+                                    data arrays
+            
+            Instances:
+            ----------
+                ARRAY_NAMES.
+        
+        5.  DUMP_TIMES_STRUCT -- READ_H2D.PRO
+            -----------------
+            Contains pointer to array of dump times, and units.
+            
+            Definition:
+            -----------
+                DUMP_TIMES = {DUMP_TIMES_STRUCT, $
+                              NAME: INFO.NAME,  $
+                              UNITS: STRING(UNITS),  $
+                              VALUE_PTR: PTR_NEW(VALUE, /NO_COPY)}
+            
+            The members of the structure are:
+            
+                NAME             --
+                UNITS            -- string of units of time
+                VALUE_PTR        -- pointer to array of dump times
+                
+            Instances:
+            ----------
+                DUMP_TIMES.
+            
+        6.  RUNINFO_STRUCT -- READ_H2D.PRO
+            --------------
+            An aggregate of these structures: HEADER, ARRAY_NAMES,
+            DUMP_TIMES (see 3, 4, 5 above).
+            
+            Definition:
+            -----------
+                RUNINFO = {RUNINFO_STRUCT, $
+                           HEADER: HEADER,  $
+                           ARRAY_NAMES: ARRAY_NAMES,  $
+                           DUMP_TIMES: DUMP_TIMES}
+            
+            Instances:
+            ----------
+                RUNINFO
+            
+        7.  DATA -- DATA__DEFINE.PRO
+            ----
+            DATA is a class for storing the actual output arrays.  It
+            is defined automatically in DATA__DEFINE.PRO.  The DATA
+            class will not normally be used directly.  It is one of
+            the component classes (almost an ancestor) of the H2D
+            class.  Access to the data object will almost always be
+            made through the H2D class.
+            
+            Definition of structure:
+            ------------------------
+                STRUCT = {DATA,  $
+                          NAME: '',  $         ;;; name of the variable
+                          LONG_NAME: '',  $    ;;; descriptive name
+                          ID: 0L,  $           ;;; ID number from netCDF file
+                          UNITS: '', $         ;;; units of the variable
+                          NUM_KLINES: 0L,  $   ;;; see HYADES 2D manual 
+                                               ;;; regarding
+                          NUM_LLINES: 0L,  $   ;;; setup of mesh for klines 
+                                               ;;; and llines
+                          NUM_TIMES: 0L,  $     ;;; no. of time steps dumped
+                          VALUE_PTR: PTR_NEW()} ;;; pointer to matrix of data
+
+                 Each HYADES 2D output variable is made an instance of
+                 the DATA class.  There is probably no need to store
+                 NUM_KLINES, NUM_LLINES, and NUM_TIMES with each
+                 variable, but for now, this is how it is.
+             
+             Constructor:
+             ------------
+                 FUNCTION DATA::INIT,CDFID, VARID, NUM_KLINES, $
+                            NUM_LLINES, NUM_TIMES
+                 
+                 Usage:  var_obj = OBJ_NEW('DATA', cdfid, varid, num_klines,
+                                           num_times)
+                 
+                 Arguments:
+                 
+                       CDFID        -- netCDF ID number of the file as 
+                                       returned by NCDF_OPEN
+                       VARID        -- ID of variable as returned by NCDF_VARID
+                       NUM_KLINES   -- number of k-lines
+                       NUM_LLINES   -- number of l-lines
+                       NUM_TIMES    -- number of time dumps
+                       
+             Member routines:
+             ----------------
+             a)  PRO DATA::PRINTINFO
+             
+                 Usage:  ex_data->printInfo
+                 
+                 Prints out information about the data object:
+                       
+                       name
+                       long name
+                       units
+                       value      -- information on the value structure
+                       
+             b)  FUNCTION DATA::GETUNITS
+             
+                 Usage:  units = ex_data->getUnits()
+                 
+                 Returns a string with the units of the current variable.
+                 
+             c)  FUNCTION DATA::GETID
+             
+                 Usage:  varid = ex_data->getID()
+                 
+                 Returns the netCDF variable ID number (long int).
+                 
+             d)  FUNCTION DATA::GETLONGNAME
+             
+                 Usage: long_name = ex_data->getLongName()
+                 
+                 Returns the long name (string) of the variable.
+                 
+             e)  FUNCTION DATA::GETNAME
+             
+                 Usage:  name = ex_data->getName()
+                 
+                 Returns the name (string) of the variable.
+                 
+             f)  FUNCTION DATA::GETVALUE
+             
+                 Usage:  var_array = ex_data->getValue()
+                 
+                 Returns the actual data in an array (klines,llines,num_times).
+                 Useful if you want to manipulate the data directly from the
+                 IDL command line.  See below on H2D class.
+                 
+             g)  PRO DATA::PRINTVALUE
+             
+                 Usage:  ex_data->printValue
+                 
+                 Prints out the data array.  Not so useful except for very
+                 small data sets.
+                 
+             h)  FUNCTION DATA::GETNUMTIMES
+             
+                 Usage:  num_times = ex_data->getNumTimes()
+                 
+                 Returns the number of time dumps in the data set.
+                 
+             i)  FUNCTION DATA::GETNUMLLINES
+             
+                 Usage:  num_llines = ex_data->getNumLLines()
+                 
+                 Returns the number of l-lines.
+                 
+             j)  FUNCTION DATA::GETNUMKLINES
+             
+                 Usage:  num_klines = ex_data->getNumKLines()
+                 
+                 Returns the number of k-lines.
+                 
+             k)  PRO DATA::ANIMATE, RUNINFO, R, Z, GROUP_LEADER=GROUP
+             
+                 Usage:  ex_data->animate, runinfo, r, z
+                 
+                 Runs animation of variable in r-z space.
+                 
+                 Arguments:
+                 
+                      RUNINFO       -- RUNINFO_STRUCT structure containing
+                                       (obviously) run info.  Used to extract
+                                       the runname to put a title on the 
+                                       graphics window.
+                                       
+                      R             -- DATA object containing r-coordinates
+                                       of all mesh points (k-lines)
+                     
+                      Z             -- DATA object containing z-coordinates
+                                       of all mesh points (l-lines)
+                                       
+                      GROUP_LEADER  -- widget ID of the group leader
+                      
+             l)  PRO DATA::ANIMZONE, RUNINFO, GROUP_LEADER=GROUP
+        
+                 Usage:  ex_data->animZone, runinfo
+                 
+                 Runs animation of variable by zones, i.e. fixed grid
+                 of k vs l, with the data value shown as a color.
+                 
+                 Arguments:
+                 
+                      RUNINFO       -- RUNINFO_STRUCT structure containing
+                                       (obviously) run info.  Used to extract
+                                       the runname to put a title on the 
+                                       graphics window.
+                                       
+            Instances:
+            ----------
+                R
+                Z
+                RHO
+                TE
+                TI
+                TR
+                PRES
+                 
+        8.  VARIABLES_STRUCT -- READ_H2D.PRO
+            ----------------
+            VARIABLES_STRUCT is no more than an agregate of all the
+            DATA objects that the H2D tools use.
+            
+            Definition:
+            -----------
+                VARIABLES = {VARIABLES_STRUCT, $
+                             R: R, $        ; radial coordinate
+                             Z: Z, $        ; axial coordinate
+                             RHO: RHO, $    ; density
+                             TE: TE, $      ; electron temperature
+                             TI: TI, $      ; ion temperature
+                             TR: TR, $      ; radiation temperature
+                             PRES: PRES}    ; pressure 
+                             
+            Instances:
+            ----------
+                VARIABLES
+                
+        9.  H2D -- H2D__DEFINE.PRO
+            ---
+            H2D is the class that contains all the information in the
+            netCDF HYADES 2D output.  It also includes member
+            procedures to produce the animations, and the usual bunch
+            of "get" functions.  The only "set" function is the
+            constructor (H2D::INIT in IDL-speak).  Its structure is an
+            aggregate of the structures RUNINFO_STRUCT,
+            DIMENSIONS_STRUCT, and VARIABLES_STRUCT.
+            
+            Definition of structure:
+            ------------------------
+                STRUCT = {H2D, $
+                          RUNINFO: {RUNINFO_STRUCT}, $
+                          DIMENSIONS: {DIMENSIONS_STRUCT}, $
+                          VARIABLES: {VARIABLES_STRUCT}}
+                      
+            Constructor:
+            ------------
+                FUNCTION H2D::INIT, RUNINFO, DIMENSIONS, VARIABLES
+                
+                Usage: h2d_data = OBJECT_NEW('H2D', runinfo, $
+                                             dimensions, variables)
+                
+                Arguments:
+                ----------
+                    RUNINFO     -- RUNINFO_STRUCT structure containing info
+                                   about the current run
+                    DIMENSIONS  -- DIMENSIONS_STRUCT structure containing info
+                                   about all dimensions of current run
+                    VARIABLES   -- VARIABLES_STRUCT structure containing all
+                                   output data
+                                   
+            Member routines:
+            ----------------
+            1.  FUNCTION H2D::GETVAROBJECT, VARNAME
+            
+                Usage:  varObject = h2d_obj->getVarObject(varname)
+            
+                Returns the data object (class DATA) named in the
+                string VARNAME.
+                
+                Arguments:
+                    VARNAME     -- string with name of data object to be
+                                   returned: 'r', 'z', 'rho', 'te', 'ti', 'tr',
+                                   'pres'
+                                   
+            2.  FUNCTION H2D::GETVARDATA, VARNAME
+            
+                Usage:  var = h2d_obj->getVarData(varname)
+                
+                Returns complete time dumps of variable named in
+                string VARNAME.
+                
+                Arguments:
+                    VARNAME     -- string with name of variable to be returned:
+                                   'r', 'z', 'rho', 'te', 'ti', 'tr', 'pres'
+                
+            3.  FUNCTION H2D::GETRUNNAME
+                
+                Usage:  runname = h2d_obj->getRunName()
+                
+                Returns a string with the run name.
+                
+            4.  FUNCTION H2D::GETRUNDATE
+            
+                Usage:  rundate = h2d_obj->getRunDate()
+                
+                Returns a string with the run date.  (I'm guessing it's the
+                completion time stamp, but haven't checked.)
+                
+            5.  FUNCTION H2D::GETRUNTIME
+            
+                Usage: runtime = h2d_obj->getRunTime()
+                
+                Returns a string with the total time for run completion.
+                
+            6.  PRO H2D::ANIMATE, VARNAME, GROUP_LEADER=GROUP
+            
+                Usage:  h2d_obj->animate, varname
+                
+                Runs animation of variable in r-z space.
+                
+                Arguments:
+                ----------
+                    VARNAME         -- string with name of variable to animate:
+                                       'rho', 'te', 'ti', 'tr', 'pres'
+                    GROUP_LEADER    -- widget ID of group leader
+                    
+            7.  PRO H2D::ANIMZONE, VARNAME, GROUP_LEADER=GROUP
+            
+                Usage: h2d_obj->animzone, varname
+                
+                Runs animation of variable in k-l space (zones).
+                
+                Arguments:
+                ----------
+                    VARNAME         -- string with name of variable to animate:
+                                       'rho', 'te', 'ti', 'tr', 'pres'
+                    GROUP_LEADER    -- widget ID of group leader
+                    
+            8.  PRO H2D::PRINTRUNINFO
+            
+                Usage:  h2d_obj->printRunInfo
+                
+                Prints out run information: run name, date, and names
+                of variables.
+                
+            9.  PRO H2D::PRINTDEBUGINFO
+            
+                Usage:  h2d_obj->printDebugInfo
+                
+                Prints out information for debugging: the HELP
+                information on the objects and structures contained in
+                the H2D object.
+                
+        

@@ -1,0 +1,11 @@
+r = h2d_data->getvardata('r')
+z = h2d_data->getvardata('z')
+te = h2d_data->getvardata('te')
+
+x = z[*,*,4]
+y = r[*,*,4]
+data = te[*,*,4]
+
+xrange = [min(z), max(z)]
+yrange = [min(r), max(r)]
+datarange = [min(te), max(te)]

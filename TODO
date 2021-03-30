@@ -1,0 +1,28 @@
+1.  Get animation widgets to have the top level widget as group leader.
+
+    --Done
+
+2.  Find heap memory leak: intarr(num_times)
+    Happens when quit toplevel widget while cw_animate is still open.
+
+3.  Need to refine gridded animation:
+    a) are cells in the right place?
+    b) title labels  --Done
+
+4.  Colorbar scale on animations? -- Done
+    Also need to make single color mapping for all frames.  --Done for
+                         position animation.  Need to do for animZone.
+
+5.  Cleanup when open new dataset...  --Done
+
+6.  When trying to animate Rho:
+
+    % LOADCT: Loading table RED TEMPERATURE
+    % PLOT: Data range for axis has zero length.
+    % Execution halted at:  H2DANIMATE        113 h2d_gui.pro
+    %                       WIDGET_PROCESS_EVENTS       
+    %                       $MAIN$             
+
+7.  DOCUMENT!
+
+8.  Make GUI rational... Really.

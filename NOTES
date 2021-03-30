@@ -1,0 +1,14 @@
+# Miscellaneous notes and thoughts.
+#
+# $Id: NOTES,v 1.1.1.1 1999/09/03 14:32:03 dwchin Exp $
+
+
+1.  This assumes all these variables are in the netCDF file:
+
+        R, Z, Rho, Pres, Te, Ti, Tr
+
+    Should this be fixed?
+
+2. BLEAH. hyades2d output CDF format keeps changing: netCDF has
+   case-sensitive names, but Fortran doesn't.  Expect stuff to
+   break frequently.
